@@ -16,7 +16,10 @@ export const POST = async (request: Request & { json: () => Promise<{ query: str
       );
     }
 
-    const result = await prisma.$queryRawUnsafe(query);
+    const result = await prisma.$transaction(async (prisma) => {
+      const transactionResult = await prisma.$queryRawUnsafe(query);
+      return transactionResult;
+    });
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

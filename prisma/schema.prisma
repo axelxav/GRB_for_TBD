@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AUTHOR {
+  author_number Int     @id
+  author_name   String  @db.VarChar(255)
+  year_born     Int
+  year_died     Int?
+  WROTE         WROTE[]
+}
+
+model BOUGHT {
+  Book_book_number         Int
+  customer_customer_number Int
+  book                     book     @relation(fields: [Book_book_number], references: [id], onDelete: NoAction)
+  CUSTOMER                 CUSTOMER @relation(fields: [customer_customer_number], references: [customer_number], onDelete: NoAction)
+
+  @@id([Book_book_number, customer_customer_number])
+}
+
+model CUSTOMER {
+  customer_number Int      @id
+  customer_name   String   @db.VarChar(255)
+  street          String   @db.VarChar(255)
+  city            String   @db.VarChar(255)
+  state           String   @db.VarChar(255)
+  country         String   @db.VarChar(255)
+  BOUGHT          BOUGHT[]
+}
+
+model INVENTORY {
+  inv_id          Int               @id
+  inv_address     String            @db.VarChar
+  INVENTORY_STORE INVENTORY_STORE[]
+}
+
+model INVENTORY_STORE {
+  INVENTORY_inv_id Int
+  STORE_store_id   Int
+  INVENTORY        INVENTORY @relation(fields: [INVENTORY_inv_id], references: [inv_id], onDelete: NoAction)
+  STORE            STORE     @relation(fields: [STORE_store_id], references: [store_id], onDelete: NoAction)
+
+  @@id([INVENTORY_inv_id, STORE_store_id])
+}
+
+model STAFF {
+  staff_id      Int            @id
+  staff_fname   String         @db.VarChar(255)
+  staff_lname   String         @db.VarChar(255)
+  staff_address String         @db.VarChar(255)
+  store_id      Int
+  STORE         STORE          @relation(fields: [store_id], references: [store_id], onDelete: NoAction, map: "store_id")
+  STAFF_BOUGHT  STAFF_BOUGHT[]
+}
+
+model STAFF_BOUGHT {
+  STAFF_staff_id   Int
+  BOOK_book_number Int
+  book             book  @relation(fields: [BOOK_book_number], references: [id], onDelete: NoAction)
+  STAFF            STAFF @relation(fields: [STAFF_staff_id], references: [staff_id], onDelete: NoAction)
+
+  @@id([BOOK_book_number, STAFF_staff_id])
+}
+
+model STORE {
+  store_id         Int               @id
+  store_address    String            @db.VarChar
+  manager_staff_id Int
+  INVENTORY_STORE  INVENTORY_STORE[]
+  STAFF            STAFF[]
+  book             book[]
+}
+
+model WROTE {
+  author_author_number Int
+  Book_book_number     Int
+  book                 book   @relation(fields: [Book_book_number], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  AUTHOR               AUTHOR @relation(fields: [author_author_number], references: [author_number], onDelete: NoAction)
+
+  @@id([author_author_number, Book_book_number])
+}
+
+model book {
+  id           Int            @id(map: "BOOK_pkey")
+  name         String         @db.VarChar(255)
+  tahun        Int
+  pages        Int
+  publisher_id Int
+  store_id     Int
+  BOUGHT       BOUGHT[]
+  STAFF_BOUGHT STAFF_BOUGHT[]
+  WROTE        WROTE[]
+  STORE        STORE          @relation(fields: [store_id], references: [store_id], onDelete: NoAction, map: "BOOK_store_id_fkey")
+  publisher    publisher      @relation(fields: [publisher_id], references: [id], onDelete: NoAction, map: "publisher_id")
+}
+
+model publisher {
+  id        Int    @id(map: "PUBLISHER_pkey")
+  name      String @db.VarChar(255)
+  city      String @db.VarChar(255)
+  telephone String @db.VarChar(50)
+  tahun     Int
+  book      book[]
+}
